@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Calendar, Clock, Users, Sparkles, CheckCircle2, QrCode, ArrowRight, 
   ShieldCheck, Heart, Lock, User, LogIn, CreditCard, Smartphone, 
-  Wallet, DollarSign, AlertCircle, X, ChevronRight, Check
+  Wallet, DollarSign, AlertCircle, X, ChevronRight, Check, Coffee, Wand2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import TableLayout3D, { cafeTables } from '../components/3d/TableLayout3D';
+import GuestCoffeeTastingCustomizer from '../components/reservation/GuestCoffeeTastingCustomizer';
+import { createDefaultGuestTasting } from '../utils/tastingDefaults';
 import { useCafe } from '../context/CafeContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,8 +22,13 @@ export default function Reservation({ setCurrentPage }) {
   const [date, setDate] = useState('2026-09-18');
   const [time, setTime] = useState('10:30 AM');
   const [guests, setGuests] = useState(2);
-  const [occasion, setOccasion] = useState('Casual Coffee & Catchup');
   const [specialRequests, setSpecialRequests] = useState('');
+
+  // Per-Guest Virtual Coffee Tasting Pre-orders
+  const [guestTastings, setGuestTastings] = useState(() => [
+    createDefaultGuestTasting(1),
+    createDefaultGuestTasting(2)
+  ]);
   
   // Advance Payment State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -31,8 +38,42 @@ export default function Reservation({ setCurrentPage }) {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [confirmedReservation, setConfirmedReservation] = useState(null);
 
-  const advancePerGuest = 100;
-  const totalAdvance = guests * advancePerGuest;
+  const totalAdvance = 100;
+
+  // Handle changing guest count and synchronizing tasting drinks
+  const handleGuestsChange = (newCount) => {
+    setGuests(newCount);
+    setGuestTastings(prev => {
+      if (newCount > prev.length) {
+        const added = [];
+        for (let i = prev.length + 1; i <= newCount; i++) {
+          added.push(createDefaultGuestTasting(i));
+        }
+        return [...prev, ...added];
+      } else if (newCount < prev.length) {
+        return prev.slice(0, newCount);
+      }
+      return prev;
+    });
+  };
+
+  // Add individual new party member
+  const handleAddMember = (customName) => {
+    const nextIdx = guestTastings.length + 1;
+    const newGuest = createDefaultGuestTasting(nextIdx, customName);
+    const updated = [...guestTastings, newGuest];
+    setGuestTastings(updated);
+    setGuests(updated.length);
+    return updated.length - 1;
+  };
+
+  // Remove party member
+  const handleRemoveMember = (idxToRemove) => {
+    if (guestTastings.length <= 1) return;
+    const updated = guestTastings.filter((_, idx) => idx !== idxToRemove);
+    setGuestTastings(updated);
+    setGuests(updated.length);
+  };
 
   useEffect(() => {
     if (user) {
@@ -40,20 +81,20 @@ export default function Reservation({ setCurrentPage }) {
       setEmail(user.email || '');
       setPhone(user.phone || '');
       setUpiId(`${user.email?.split('@')[0] || 'morningbrew'}@okaxis`);
+      // Default Guest 1 name to user's name
+      setGuestTastings(prev => {
+        const updated = [...prev];
+        if (updated[0]) {
+          updated[0] = { ...updated[0], guestName: `${user.name} (You)` };
+        }
+        return updated;
+      });
     }
   }, [user]);
 
   const timeSlots = [
     '08:00 AM', '09:00 AM', '10:30 AM', '12:00 PM',
     '01:30 PM', '03:00 PM', '04:30 PM', '06:00 PM', '07:30 PM', '09:00 PM'
-  ];
-
-  const occasions = [
-    'Casual Coffee & Catchup',
-    'Quiet Remote Work / Study',
-    'Business Strategy Meeting',
-    'Romantic Coffee Date',
-    'Birthday / Celebration'
   ];
 
   // Open payment review step
@@ -81,8 +122,8 @@ export default function Reservation({ setCurrentPage }) {
       time,
       guests,
       tableZone: `${selectedTable.zone} (${selectedTable.id})`,
-      occasion,
       specialRequests,
+      tastingOrders: guestTastings,
       advancePaid: totalAdvance,
       paymentStatus: 'Paid',
       paymentMethod: paymentMethod === 'upi' ? `UPI (${upiId || 'Instant Pay'})` : paymentMethod === 'card' ? 'Credit/Debit Card' : 'Net Banking'
@@ -119,7 +160,7 @@ export default function Reservation({ setCurrentPage }) {
           Book Your Artisanal Cafe Table
         </h1>
         <p className="text-sm text-stone-400">
-          Pick your preferred zone on our interactive 3D floor map, pay a nominal advance deposit (100% deductible from your cafe bill), and enjoy priority zero-wait seating.
+          Pick your preferred zone on our interactive 3D floor map, pay a nominal ₹100 advance deposit (100% deductible from your cafe bill), and enjoy priority zero-wait seating.
         </p>
       </div>
 
@@ -136,8 +177,8 @@ export default function Reservation({ setCurrentPage }) {
             <h2 className="text-2xl font-bold font-heading text-white">
               Authentication Required
             </h2>
-            <p className="text-xs sm:text-sm text-stone-300 leading-relaxed max-w-md mx-auto">
-              To reserve and guarantee your table with live 3D visual selection and digital confirmation tickets, please sign in to your Morning Brew account.
+            <p className="text-xs text-stone-400 max-w-sm mx-auto">
+              Please sign in or create an account to select 3D seating and confirm your table reservation.
             </p>
           </div>
 
@@ -159,156 +200,223 @@ export default function Reservation({ setCurrentPage }) {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <button
               onClick={() => openAuthModal('login')}
-              className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 text-stone-950 font-bold font-heading text-sm shadow-glow-amber hover:shadow-glow-orange hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+              className="py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 font-bold text-xs shadow-glow-amber hover:scale-105 transition-all flex items-center justify-center gap-2"
             >
-              <LogIn size={18} />
-              <span>Sign In to Order Table</span>
+              <LogIn size={15} />
+              <span>Sign In to Continue</span>
             </button>
             <button
-              onClick={() => openAuthModal('register')}
-              className="py-4 px-6 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs transition-colors border border-stone-700"
+              onClick={() => openAuthModal('signup')}
+              className="py-3 px-6 rounded-xl bg-stone-800 border border-stone-700 text-white font-bold text-xs hover:bg-stone-700 transition-all flex items-center justify-center gap-2"
             >
-              Create Free Account
+              <User size={15} />
+              <span>Create Free Account</span>
             </button>
           </div>
         </div>
       ) : confirmedReservation ? (
+        /* SUCCESS CONFIRMATION RECEIPT TICKET */
+        <div className="max-w-2xl mx-auto p-6 sm:p-10 rounded-3xl bg-gradient-to-b from-stone-900 via-[#19110a] to-stone-900 border border-emerald-500/40 shadow-2xl space-y-6 text-center animate-fadeIn relative overflow-hidden">
+          <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center mx-auto shadow-glow-emerald">
+            <Check size={32} />
+          </div>
 
-        /* Confirmed Digital Ticket Card */
-        <div className="max-w-xl mx-auto p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#1c1813] to-[#120d0a] border border-emerald-500/40 shadow-2xl space-y-6 animate-fadeIn">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto shadow-glow-amber">
-              <CheckCircle2 size={32} />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold font-heading text-white">Table Reserved & Guaranteed!</h2>
+          <div className="space-y-1">
+            <span className="text-xs uppercase tracking-widest text-emerald-400 font-bold">
+              Table Reservation Confirmed
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-heading">
+              We Can't Wait to Host You!
+            </h2>
             <p className="text-xs text-stone-400">
-              A digital confirmation pass has been dispatched to <strong>{confirmedReservation.email}</strong>
+              A digital ticket and receipt has been generated for your visit.
             </p>
           </div>
 
-          {/* Digital Ticket */}
-          <div className="p-6 rounded-2xl bg-stone-900/90 border border-stone-800 space-y-4 relative overflow-hidden">
+          {/* Ticket Card */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-stone-950/80 border border-stone-800 text-left space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-stone-800">
               <div>
-                <span className="text-[10px] text-stone-500 uppercase tracking-widest font-bold">Booking Pass ID</span>
-                <div className="text-base font-extrabold text-amber-400 font-mono">
-                  {confirmedReservation.id}
+                <span className="text-[10px] text-stone-500 uppercase tracking-wider block">Booking ID</span>
+                <span className="font-mono text-sm font-bold text-amber-400">#{confirmedReservation.id}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-stone-500 uppercase tracking-wider block">Status</span>
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
+                  <CheckCircle2 size={12} /> Confirmed (Paid)
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div>
+                <span className="text-stone-500 block text-[10px]">Guest Name</span>
+                <strong className="text-white font-medium">{confirmedReservation.userName || confirmedReservation.name}</strong>
+              </div>
+              <div>
+                <span className="text-stone-500 block text-[10px]">Date & Time</span>
+                <strong className="text-white font-medium">{confirmedReservation.date} • {confirmedReservation.time}</strong>
+              </div>
+              <div>
+                <span className="text-stone-500 block text-[10px]">Guests & Table</span>
+                <strong className="text-white font-medium">{confirmedReservation.guests} Guests • {confirmedReservation.tableZone}</strong>
+              </div>
+              <div>
+                <span className="text-stone-500 block text-[10px]">Advance Paid</span>
+                <strong className="text-emerald-400 font-bold font-mono">₹{confirmedReservation.advancePaid || 100} (Credited)</strong>
+              </div>
+            </div>
+
+            {/* Personalized Guest Coffee Tasting Pre-Orders in Confirmed Pass */}
+            {confirmedReservation.tastingOrders && confirmedReservation.tastingOrders.length > 0 && (
+              <div className="p-4 rounded-2xl bg-stone-900/90 border border-amber-500/30 space-y-2.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
+                  <Coffee size={14} className="text-amber-400" />
+                  <span>Personalized Coffee Tasting Pre-Orders ({confirmedReservation.tastingOrders.length} Custom Cups):</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {confirmedReservation.tastingOrders.map((drink, idx) => (
+                    <div key={idx} className="p-2.5 rounded-xl bg-stone-950 border border-stone-800 text-xs space-y-0.5">
+                      <div className="flex justify-between items-center font-bold">
+                        <span className="text-white flex items-center gap-1">
+                          <span className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-400 text-[10px] flex items-center justify-center font-black">
+                            {idx + 1}
+                          </span>
+                          {drink.guestName || `Guest ${idx + 1}`}
+                        </span>
+                        <span className="text-amber-400 font-mono">{drink.size} {drink.baseCoffee}</span>
+                      </div>
+                      <div className="text-[10px] text-stone-400">
+                        {drink.milkType} • {drink.roastType?.split(' ')[0]} • {drink.syrup !== 'None' ? drink.syrup : 'Classic'} {drink.topping !== 'None' ? `• ${drink.topping}` : ''}
+                      </div>
+                      {drink.notes && (
+                        <div className="text-[9px] text-amber-300/90 italic">Note: "{drink.notes}"</div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30 flex items-center gap-1">
-                <CheckCircle2 size={12} /> {confirmedReservation.status} & Paid
+            )}
+
+            <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
+              <Sparkles size={14} className="flex-shrink-0 text-emerald-400" />
+              <span>
+                <strong>100% Bill Credit:</strong> Show this ticket on arrival. ₹{confirmedReservation.advancePaid || 100} will be discounted from your final food & coffee bill.
               </span>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <span className="text-stone-500 block">Date & Time</span>
-                <span className="text-white font-bold">{confirmedReservation.date} at {confirmedReservation.time}</span>
-              </div>
-              <div>
-                <span className="text-stone-500 block">Table Zone</span>
-                <span className="text-white font-bold">{confirmedReservation.tableZone}</span>
-              </div>
-              <div>
-                <span className="text-stone-500 block">Party Size</span>
-                <span className="text-white font-bold">{confirmedReservation.guests} Guests</span>
-              </div>
-              <div>
-                <span className="text-stone-500 block">Occasion</span>
-                <span className="text-white font-bold">{confirmedReservation.occasion}</span>
-              </div>
-            </div>
-
-            {/* Advance Deposit Highlight Pill */}
-            <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-500/30 text-xs space-y-1">
-              <div className="flex items-center justify-between font-bold text-emerald-300">
-                <span>Advance Deposit Paid:</span>
-                <span className="text-sm font-extrabold font-mono text-white">₹{confirmedReservation.advancePaid || totalAdvance}</span>
-              </div>
-              <p className="text-[11px] text-stone-300">
-                ✨ <strong>100% Deductible:</strong> Show this pass upon seating at the cafe. ₹{confirmedReservation.advancePaid || totalAdvance} will be subtracted from your final coffee & food bill.
-              </p>
-            </div>
-
-            {confirmedReservation.specialRequests && (
-              <div className="pt-2 border-t border-stone-800 text-xs">
-                <span className="text-stone-500 block">Special Notes:</span>
-                <p className="text-stone-300 italic">{confirmedReservation.specialRequests}</p>
-              </div>
-            )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <button
-              onClick={() => setConfirmedReservation(null)}
-              className="flex-1 py-3.5 rounded-xl bg-stone-800 text-xs font-bold text-stone-300 hover:bg-stone-700 transition-colors"
+              onClick={() => {
+                setConfirmedReservation(null);
+                setCurrentPage('menu');
+              }}
+              className="py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 font-bold text-xs shadow-glow-amber hover:scale-105 transition-all"
             >
-              Book Another Table
+              Browse Cafe Menu
             </button>
             <button
-              onClick={() => setCurrentPage('menu')}
-              className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 text-xs font-bold font-heading hover:shadow-glow-amber transition-colors shadow-md"
+              onClick={() => {
+                setConfirmedReservation(null);
+                setCurrentPage('profile');
+              }}
+              className="py-3 px-6 rounded-xl bg-stone-800 border border-stone-700 text-white font-bold text-xs hover:bg-stone-700 transition-all"
             >
-              Pre-Order Coffee & Food →
+              View in My Bookings
             </button>
           </div>
         </div>
       ) : (
-        /* Reservation Form + 3D Layout */
-        <div className="space-y-10">
+        /* RESERVATION FORM & 3D TABLE MAP */
+        <div className="space-y-12 animate-fadeIn">
           
-          {/* 3D Floor Visualizer */}
-          <TableLayout3D
-            selectedTable={selectedTable}
-            onSelectTable={(table) => setSelectedTable(table)}
-          />
-
-          {/* Booking Form Details */}
-          <form
-            onSubmit={handleProceedToPayment}
-            className="p-6 sm:p-10 rounded-3xl bg-stone-900/80 border border-stone-800 backdrop-blur-xl shadow-2xl space-y-8"
-          >
-            <div className="border-b border-stone-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          {/* 3D Visual Table Selector */}
+          <div className="p-4 sm:p-8 rounded-3xl bg-stone-900/80 border border-stone-800 backdrop-blur-xl shadow-2xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-xl font-bold font-heading text-white">Reservation & Guest Details</h3>
-                <p className="text-xs text-stone-400">Complete your guest info to choose your table advance deposit</p>
+                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">
+                  <Sparkles size={14} /> Interactive 3D Seating Floor
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold font-heading text-white">
+                  Step 1: Select Your Preferred Table Zone
+                </h2>
+                <p className="text-xs text-stone-400">
+                  Click on any table directly on the 3D floor map or choose from the list below.
+                </p>
               </div>
-              <span className="text-xs px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold self-start sm:self-auto">
-                Table Selected: {selectedTable?.id} ({selectedTable?.zone})
-              </span>
+
+              {/* Active Selected Table Badge */}
+              <div className="p-3.5 rounded-2xl bg-stone-950 border border-amber-500/40 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs font-mono">
+                  #{selectedTable.id}
+                </div>
+                <div className="text-left">
+                  <span className="text-[10px] text-stone-400 uppercase tracking-wider block">Selected Table</span>
+                  <span className="text-xs font-bold text-white block">{selectedTable.zone}</span>
+                  <span className="text-[10px] text-amber-300 font-medium">Capacity: up to {selectedTable.capacity} guests</span>
+                </div>
+              </div>
             </div>
 
-            {/* Guest Name & Contact */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* 3D Canvas Embed */}
+            <TableLayout3D
+              selectedTable={selectedTable}
+              onSelectTable={(table) => setSelectedTable(table)}
+            />
+          </div>
+
+          {/* Booking Info & Advance Payment Section */}
+          <form onSubmit={handleProceedToPayment} className="p-6 sm:p-8 rounded-3xl bg-stone-900/80 border border-stone-800 backdrop-blur-xl shadow-2xl space-y-8">
+            <div className="space-y-1">
+              <h2 className="text-xl sm:text-2xl font-bold font-heading text-white flex items-center gap-2">
+                <span>Step 2: Guest Details & Time Slot</span>
+              </h2>
+              <p className="text-xs text-stone-400">
+                Confirm your schedule and guest count for table preparation.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              
+              {/* Full Name */}
               <div>
-                <label className="block text-xs font-semibold text-stone-300 mb-1.5">Full Name *</label>
+                <label className="block text-xs font-semibold text-stone-300 mb-1.5">
+                  Guest Name *
+                </label>
                 <input
                   type="text"
                   required
                   value={userName}
                   onChange={e => setUserName(e.target.value)}
-                  placeholder="e.g. Eleanor Vance"
+                  placeholder="Jane Doe"
                   className="w-full py-2.5 px-3.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-200 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
+              {/* Email */}
               <div>
-                <label className="block text-xs font-semibold text-stone-300 mb-1.5">Email Address *</label>
+                <label className="block text-xs font-semibold text-stone-300 mb-1.5">
+                  Email Address *
+                </label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="eleanor@example.com"
+                  placeholder="jane@example.com"
                   className="w-full py-2.5 px-3.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-200 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
+              {/* Phone */}
               <div>
-                <label className="block text-xs font-semibold text-stone-300 mb-1.5">Phone Number *</label>
+                <label className="block text-xs font-semibold text-stone-300 mb-1.5">
+                  Phone Number *
+                </label>
                 <input
                   type="tel"
                   required
@@ -318,18 +426,21 @@ export default function Reservation({ setCurrentPage }) {
                   className="w-full py-2.5 px-3.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-200 focus:outline-none focus:border-amber-500"
                 />
               </div>
+
             </div>
 
-            {/* Date, Time Slots & Guests */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 pt-2">
               
-              {/* Date & Guests */}
+              {/* Date */}
               <div className="lg:col-span-4 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-stone-300 mb-1.5">Date</label>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1.5">
+                    Reservation Date
+                  </label>
                   <input
                     type="date"
                     required
+                    min={new Date().toISOString().split('T')[0]}
                     value={date}
                     onChange={e => setDate(e.target.value)}
                     className="w-full py-2.5 px-3.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-200 focus:outline-none focus:border-amber-500"
@@ -337,36 +448,25 @@ export default function Reservation({ setCurrentPage }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-stone-300 mb-1.5">Party Size</label>
-                  <div className="flex gap-2 bg-stone-950 p-1 rounded-xl border border-stone-800">
-                    {[1, 2, 4, 6, 8].map(g => (
+                  <label className="block text-xs font-semibold text-stone-300 mb-1.5">
+                    Number of Guests
+                  </label>
+                  <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
+                    {[1, 2, 3, 4, 5, 6].map(g => (
                       <button
                         type="button"
                         key={g}
-                        onClick={() => setGuests(g)}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        onClick={() => handleGuestsChange(g)}
+                        className={`py-2 px-1 sm:px-2.5 rounded-xl text-xs font-bold transition-all border text-center ${
                           guests === g
-                            ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
-                            : 'text-stone-400 hover:text-white'
+                            ? 'bg-amber-500 text-stone-950 border-amber-400 shadow-glow-amber scale-105 font-black'
+                            : 'bg-stone-950 text-stone-400 border-stone-800 hover:text-white'
                         }`}
                       >
-                        {g} {g === 8 ? '+' : ''}
+                        {g}
                       </button>
                     ))}
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-stone-300 mb-1.5">Occasion</label>
-                  <select
-                    value={occasion}
-                    onChange={e => setOccasion(e.target.value)}
-                    className="w-full py-2.5 px-3.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-200 focus:outline-none focus:border-amber-500"
-                  >
-                    {occasions.map((occ, i) => (
-                      <option key={i} value={occ}>{occ}</option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
@@ -409,6 +509,17 @@ export default function Reservation({ setCurrentPage }) {
 
             </div>
 
+            {/* STEP 3: VIRTUAL COFFEE TASTING CUSTOMIZER PER GUEST */}
+            <div className="pt-4 border-t border-stone-800">
+              <GuestCoffeeTastingCustomizer
+                guestTastings={guestTastings}
+                setGuestTastings={setGuestTastings}
+                totalGuests={guests}
+                onAddMember={handleAddMember}
+                onRemoveMember={handleRemoveMember}
+              />
+            </div>
+
             {/* Advance Deposit Summary Card */}
             <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
@@ -416,10 +527,10 @@ export default function Reservation({ setCurrentPage }) {
                   <Sparkles size={14} /> Advance Table Booking Deposit
                 </div>
                 <p className="text-xs text-stone-300">
-                  ₹{advancePerGuest} per guest × {guests} guests = <strong className="text-white font-mono text-sm">₹{totalAdvance}</strong>
+                  Flat Advance Deposit = <strong className="text-white font-mono text-sm">₹{totalAdvance}</strong> (Includes {guests} Custom Guest Tasting Orders)
                 </p>
                 <span className="text-[11px] text-emerald-400 block font-medium">
-                  ✓ 100% of this ₹{totalAdvance} advance is deducted directly from your final dining bill.
+                  ✓ 100% of this ₹{totalAdvance} advance is credited directly to your final dining bill at checkout.
                 </span>
               </div>
 
@@ -443,7 +554,7 @@ export default function Reservation({ setCurrentPage }) {
                 disabled={loading}
                 className="w-full sm:w-auto py-4 px-8 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 text-stone-950 font-bold font-heading text-sm shadow-lg hover:shadow-glow-amber hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
               >
-                <span>Proceed to Pay ₹{totalAdvance} Advance</span>
+                <span>Proceed to Pay ₹{totalAdvance} Advance & Reserve</span>
                 <ArrowRight size={16} />
               </button>
             </div>
@@ -483,14 +594,34 @@ export default function Reservation({ setCurrentPage }) {
             </div>
 
             {/* Amount Callout Box */}
-            <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between">
-              <div>
-                <span className="text-xs text-stone-400 block">Advance Booking Fee:</span>
-                <span className="text-[11px] text-emerald-400 font-semibold">100% credited to your cafe bill</span>
+            <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-stone-400 block">Advance Booking Deposit:</span>
+                  <span className="text-[11px] text-emerald-400 font-semibold">100% credited to your dining bill</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-extrabold text-amber-400 font-heading">₹{totalAdvance}</span>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-2xl font-extrabold text-amber-400 font-heading">₹{totalAdvance}</span>
-              </div>
+
+              {/* Tasting Pre-order summary */}
+              {guestTastings && guestTastings.length > 0 && (
+                <div className="pt-2.5 border-t border-stone-800/80 space-y-1 text-xs">
+                  <div className="text-[11px] font-bold text-amber-300 flex items-center gap-1">
+                    <Coffee size={12} className="text-amber-400" />
+                    <span>Included Tasting Profiles for Table ({guestTastings.length} Drinks):</span>
+                  </div>
+                  <div className="space-y-1">
+                    {guestTastings.map((g, idx) => (
+                      <div key={idx} className="flex justify-between text-[11px] text-stone-300 bg-stone-900/60 px-2 py-1 rounded-lg">
+                        <span className="font-medium text-white">{g.guestName}:</span>
+                        <span className="text-amber-200">{g.size} {g.baseCoffee} ({g.milkType})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Payment Method Selector Tabs */}

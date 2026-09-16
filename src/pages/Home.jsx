@@ -69,18 +69,18 @@ export default function Home({ setCurrentPage }) {
               </div>
 
               {/* Social Proof Stats */}
-              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-stone-800/80 text-left">
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-amber-400 font-heading">100%</div>
-                  <div className="text-xs text-stone-400">Single-Origin Arabica</div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-6 border-t border-stone-800/80 text-center sm:text-left">
+                <div className="p-1">
+                  <div className="text-xl sm:text-3xl font-black text-amber-400 font-heading">100%</div>
+                  <div className="text-[10px] sm:text-xs text-stone-400 leading-tight">Single-Origin Arabica</div>
                 </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-rose-400 font-heading">4.9★</div>
-                  <div className="text-xs text-stone-400">Artisanal Craftsmanship</div>
+                <div className="p-1">
+                  <div className="text-xl sm:text-3xl font-black text-rose-400 font-heading">4.9★</div>
+                  <div className="text-[10px] sm:text-xs text-stone-400 leading-tight">Artisanal Craft</div>
                 </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-emerald-400 font-heading">3D</div>
-                  <div className="text-xs text-stone-400">Visual Table Layout</div>
+                <div className="p-1">
+                  <div className="text-xl sm:text-3xl font-black text-emerald-400 font-heading">3D</div>
+                  <div className="text-[10px] sm:text-xs text-stone-400 leading-tight">Visual Floor Map</div>
                 </div>
               </div>
 

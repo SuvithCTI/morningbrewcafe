@@ -40,9 +40,9 @@ export default function About({ setCurrentPage }) {
   ];
 
   const galleryImages = [
-    { url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80', title: 'Cozy Morning Sunlit Ambiance' },
-    { url: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=80', title: 'Pour-Over Chemex Bar' },
-    { url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80', title: 'Artisanal Cafe Seating' },
+    { url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80', title: 'Cozy Sunlit Dining Lounge' },
+    { url: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80', title: 'Artisanal Roastery Counter' },
+    { url: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80', title: 'Pour-Over Chemex Bar' },
     { url: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=80', title: 'Fresh Daily Pastry Counter' },
   ];
 
@@ -74,10 +74,14 @@ export default function About({ setCurrentPage }) {
         </div>
 
         <div className="lg:col-span-6 relative">
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-amber-500/20 aspect-video lg:aspect-square">
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-amber-500/20 aspect-video lg:aspect-square bg-stone-950">
             <img
-              src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80"
-              alt="Morning Brew Cafe Ambiance"
+              src="https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1200&q=80"
+              alt="Morning Brew Artisanal Roastery & Espresso Lab"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=80';
+              }}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>

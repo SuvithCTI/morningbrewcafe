@@ -28,6 +28,7 @@ router.post('/', (req, res) => {
     tableZone,
     occasion,
     specialRequests,
+    tastingOrders,
     advancePaid,
     paymentStatus,
     paymentMethod
@@ -48,7 +49,8 @@ router.post('/', (req, res) => {
     tableZone: tableZone || 'Sunlit Window (Standard)',
     occasion: occasion || 'Casual Coffee',
     specialRequests: specialRequests || '',
-    advancePaid: Number(advancePaid) || (parseInt(guests, 10) * 100),
+    tastingOrders: Array.isArray(tastingOrders) ? tastingOrders : [],
+    advancePaid: Number(advancePaid) || 100,
     paymentStatus: paymentStatus || 'Paid',
     paymentMethod: paymentMethod || 'UPI / Instant Pay',
     status: 'Confirmed',

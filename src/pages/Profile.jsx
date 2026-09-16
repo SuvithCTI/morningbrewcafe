@@ -190,13 +190,26 @@ export default function Profile({ setCurrentPage }) {
                   </span>
                 </div>
 
-                <div className="text-xs text-stone-400 space-y-0.5 pt-2 border-t border-stone-900">
+                <div className="text-xs text-stone-400 space-y-1 pt-2 border-t border-stone-900">
                   <div><strong>Date:</strong> {res.date} at {res.time}</div>
                   <div><strong>Guests:</strong> {res.guests} Persons</div>
-                  <div><strong>Occasion:</strong> {res.occasion}</div>
-                  <div className="text-emerald-400 font-semibold pt-1">
-                    <strong>Advance Paid:</strong> ₹{res.advancePaid || (res.guests * 100)} (Deductible at Cafe)
+                  <div className="text-emerald-400 font-semibold">
+                    <strong>Advance Paid:</strong> ₹{res.advancePaid || 100} (Credited at Cafe)
                   </div>
+
+                  {/* Tasting Orders if available */}
+                  {res.tastingOrders && res.tastingOrders.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-stone-900 space-y-1">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-amber-300 block">
+                        ☕ Pre-Selected Tasting Drinks:
+                      </span>
+                      {res.tastingOrders.map((t, idx) => (
+                        <div key={idx} className="text-[11px] text-stone-300 bg-stone-900/80 px-2 py-1 rounded">
+                          <strong className="text-white">{t.guestName || `Guest ${idx + 1}`}:</strong> {t.size} {t.baseCoffee} ({t.milkType})
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

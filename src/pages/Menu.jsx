@@ -129,16 +129,16 @@ export default function Menu({ setCurrentPage }) {
           ))}
         </div>
 
-        {/* Dietary Tag Filter Pills (Hidden on Mobile View) */}
-        <div className="hidden sm:flex items-center gap-2 overflow-x-auto pt-2 border-t border-stone-800/80">
-          <span className="text-xs text-stone-500 flex items-center gap-1 flex-shrink-0">
+        {/* Dietary Tag Filter Pills (Accessible and horizontally scrollable on mobile) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pt-2 border-t border-stone-800/80 scrollbar-none">
+          <span className="text-[11px] sm:text-xs text-stone-500 flex items-center gap-1 flex-shrink-0">
             <Filter size={12} /> Dietary:
           </span>
           {dietaryOptions.map(diet => (
             <button
               key={diet}
               onClick={() => setSelectedDietary(diet)}
-              className={`px-3 py-1 rounded-xl text-[11px] font-medium transition-all ${
+              className={`px-2.5 sm:px-3 py-1 rounded-xl text-[10px] sm:text-[11px] font-medium whitespace-nowrap transition-all flex-shrink-0 ${
                 selectedDietary === diet
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold'
                   : 'bg-stone-950/40 text-stone-400 border border-stone-800 hover:text-stone-200'

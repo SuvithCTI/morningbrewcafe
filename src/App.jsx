@@ -8,6 +8,7 @@ import Footer from './components/layout/Footer';
 import CustomizeModal from './components/menu/CustomizeModal';
 import AuthModal from './components/common/AuthModal';
 import NotificationToast from './components/common/NotificationToast';
+import FloatingContactButton from './components/common/FloatingContactButton';
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -16,6 +17,7 @@ import Reservation from './pages/Reservation';
 import Contact from './pages/Contact';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -23,7 +25,7 @@ export default function App() {
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '');
-      if (hash && ['home', 'about', 'menu', 'reservation', 'contact', 'profile', 'admin'].includes(hash)) {
+      if (hash && ['home', 'about', 'menu', 'reservation', 'contact', 'profile', 'admin', 'privacy'].includes(hash)) {
         setCurrentPage(hash);
       }
     };
@@ -54,6 +56,8 @@ export default function App() {
         return <Profile setCurrentPage={handlePageChange} />;
       case 'admin':
         return <AdminDashboard setCurrentPage={handlePageChange} />;
+      case 'privacy':
+        return <PrivacyPolicy setCurrentPage={handlePageChange} />;
       default:
         return <Home setCurrentPage={handlePageChange} />;
     }
@@ -86,6 +90,9 @@ export default function App() {
 
           {/* Global Notification Toasts */}
           <NotificationToast />
+
+          {/* Persistent Floating Contact Icon Button on Every Page */}
+          <FloatingContactButton currentPage={currentPage} setCurrentPage={handlePageChange} />
 
         </div>
       </CafeProvider>

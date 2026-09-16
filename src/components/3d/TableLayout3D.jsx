@@ -50,19 +50,19 @@ export default function TableLayout3D({ selectedTable, onSelectTable }) {
       </div>
 
       {/* 3D Isometric Floor Grid Area */}
-      <div className="relative mt-6 w-full min-h-[420px] md:min-h-[480px] rounded-2xl bg-gradient-to-b from-[#1c130d] to-[#0d0907] border border-amber-900/40 p-4 md:p-8 overflow-hidden shadow-inner flex items-center justify-center">
+      <div className="relative mt-6 w-full min-h-[380px] sm:min-h-[440px] md:min-h-[480px] rounded-2xl bg-gradient-to-b from-[#1c130d] to-[#0d0907] border border-amber-900/40 p-3 sm:p-6 md:p-8 overflow-hidden shadow-inner flex items-center justify-center">
         
-        {/* Architectural Room Labels */}
-        <div className="absolute top-4 left-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
+        {/* Architectural Room Labels - Responsive positioning */}
+        <div className="hidden sm:block absolute top-4 left-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
           🌿 Sunlit Window Bay
         </div>
-        <div className="absolute top-4 right-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
+        <div className="hidden sm:block absolute top-4 right-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
           ✨ VIP Velvet Lounge & Patio
         </div>
-        <div className="absolute bottom-4 left-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
+        <div className="hidden sm:block absolute bottom-4 left-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
           ☕ Main Roastery Stage
         </div>
-        <div className="absolute bottom-4 right-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
+        <div className="hidden sm:block absolute bottom-4 right-6 px-3 py-1 rounded-lg bg-stone-900/80 border border-stone-800 text-[11px] text-amber-200/70 font-medium">
           🔥 Fireplace Hearth
         </div>
 
@@ -76,7 +76,7 @@ export default function TableLayout3D({ selectedTable, onSelectTable }) {
         ></div>
 
         {/* Interactive Table Nodes Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 w-full relative z-10 max-w-4xl py-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 w-full relative z-10 max-w-4xl py-2 sm:py-4">
           {cafeTables.map(table => {
             const isSelected = selectedTable?.id === table.id;
             const isReserved = table.status === 'Reserved';
@@ -86,17 +86,17 @@ export default function TableLayout3D({ selectedTable, onSelectTable }) {
                 key={table.id}
                 disabled={isReserved}
                 onClick={() => onSelectTable(table)}
-                className={`group relative p-4 rounded-2xl border transition-all duration-300 text-left flex flex-col justify-between ${
+                className={`group relative p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all duration-300 text-left flex flex-col justify-between ${
                   isReserved
                     ? 'bg-stone-900/40 border-stone-800 opacity-50 cursor-not-allowed'
                     : isSelected
-                    ? 'bg-gradient-to-b from-amber-500/25 to-amber-900/40 border-amber-400 shadow-glow-amber scale-105 ring-2 ring-amber-400'
-                    : 'bg-stone-900/80 border-stone-800 hover:border-emerald-500/60 hover:bg-stone-800/80 hover:-translate-y-1 shadow-lg'
+                    ? 'bg-gradient-to-b from-amber-500/25 to-amber-900/40 border-amber-400 shadow-glow-amber scale-[1.02] sm:scale-105 ring-2 ring-amber-400'
+                    : 'bg-stone-900/80 border-stone-800 hover:border-emerald-500/60 hover:bg-stone-800/80 hover:-translate-y-1 shadow-lg active:scale-95'
                 }`}
               >
                 {/* Table Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`text-xs font-extrabold px-2.5 py-1 rounded-lg ${
+                <div className="flex items-center justify-between mb-1.5 sm:mb-3">
+                  <span className={`text-[10px] sm:text-xs font-extrabold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg ${
                     isSelected
                       ? 'bg-amber-400 text-stone-950 shadow-sm'
                       : isReserved
@@ -106,35 +106,35 @@ export default function TableLayout3D({ selectedTable, onSelectTable }) {
                     {table.id}
                   </span>
 
-                  <span className={`w-2.5 h-2.5 rounded-full ${
+                  <span className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
                     isReserved ? 'bg-rose-500' : isSelected ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'
                   }`}></span>
                 </div>
 
                 {/* Table Visual Shape Icon */}
-                <div className="my-2 flex items-center justify-center">
-                  <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center transition-all ${
+                <div className="my-1 sm:my-2 flex items-center justify-center">
+                  <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center transition-all ${
                     isSelected
                       ? 'bg-amber-500 text-stone-950 font-bold shadow-lg'
                       : isReserved
                       ? 'bg-stone-800/80 text-stone-500'
                       : 'bg-stone-800 text-stone-300 group-hover:bg-emerald-500/10 group-hover:text-emerald-400 border border-stone-700/50'
                   }`}>
-                    <Users size={18} className="mb-0.5" />
-                    <span className="text-[10px] font-bold">{table.seats} Seats</span>
+                    <Users size={15} className="sm:w-[18px] sm:h-[18px] mb-0.5" />
+                    <span className="text-[9px] sm:text-[10px] font-bold">{table.seats} Seats</span>
                   </div>
                 </div>
 
                 {/* Zone & View Info */}
-                <div className="mt-2 pt-2 border-t border-stone-800/80">
-                  <div className="text-xs font-semibold text-stone-200 truncate">{table.zone}</div>
-                  <div className="text-[11px] text-stone-400 truncate">{table.view}</div>
+                <div className="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-stone-800/80">
+                  <div className="text-[11px] sm:text-xs font-semibold text-stone-200 truncate">{table.zone}</div>
+                  <div className="text-[9px] sm:text-[11px] text-stone-400 truncate">{table.view}</div>
                 </div>
 
                 {/* Selected Checkmark Badge */}
                 {isSelected && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-amber-400 text-stone-950 flex items-center justify-center shadow-md">
-                    <CheckCircle2 size={16} />
+                  <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber-400 text-stone-950 flex items-center justify-center shadow-md">
+                    <CheckCircle2 size={14} className="sm:w-4 sm:h-4" />
                   </div>
                 )}
               </button>

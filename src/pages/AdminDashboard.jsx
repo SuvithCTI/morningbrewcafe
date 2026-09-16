@@ -164,7 +164,7 @@ export default function AdminDashboard({ setCurrentPage }) {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex bg-stone-900/90 p-1.5 rounded-2xl border border-stone-800 max-w-xl">
+      <div className="flex bg-stone-900/90 p-1.5 rounded-2xl border border-stone-800 max-w-xl overflow-x-auto scrollbar-none gap-1">
         {[
           { id: 'reservations', label: `Reservations (${reservations.length})` },
           { id: 'menu', label: `Menu Items (${menuItems.length})` },
@@ -174,7 +174,7 @@ export default function AdminDashboard({ setCurrentPage }) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex-1 min-w-[120px] py-2.5 px-3 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === tab.id
                 ? 'bg-amber-500 text-stone-950 font-bold shadow-sm'
                 : 'text-stone-400 hover:text-white'
@@ -210,9 +210,23 @@ export default function AdminDashboard({ setCurrentPage }) {
                 <div className="p-3 rounded-xl bg-stone-950 text-xs text-stone-300 space-y-1">
                   <div><strong>Table Zone:</strong> {res.tableZone}</div>
                   <div><strong>Date & Time:</strong> {res.date} at {res.time} ({res.guests} guests)</div>
-                  <div><strong>Occasion:</strong> {res.occasion}</div>
                   {res.specialRequests && (
                     <div className="text-amber-200/80 italic pt-1">Notes: "{res.specialRequests}"</div>
+                  )}
+                  {res.tastingOrders && res.tastingOrders.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-stone-800 space-y-1">
+                      <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                        ☕ Barista Tasting Orders ({res.tastingOrders.length}):
+                      </span>
+                      <div className="space-y-1">
+                        {res.tastingOrders.map((t, idx) => (
+                          <div key={idx} className="text-[11px] text-stone-300 bg-stone-900 px-2 py-1 rounded flex justify-between">
+                            <span className="text-white font-medium">{t.guestName || `Guest ${idx + 1}`}:</span>
+                            <span className="text-amber-300">{t.size} {t.baseCoffee} • {t.milkType} {t.syrup !== 'None' ? `(${t.syrup})` : ''}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
